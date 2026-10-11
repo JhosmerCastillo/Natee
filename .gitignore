@@ -1,0 +1,51 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# JetBrains Rider & Visual Studio
+.idea/
+*.sln.iml
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET Test & Coverage
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Local Databases, Logs, and Private Reports
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+natee-local/
+reports-output/
+
+# Release Artifacts (generated binaries)
+artifacts/releases/*.zip
+artifacts/releases/*.tar.gz
+artifacts/releases/*.deb
+artifacts/releases/*.rpm
+artifacts/publish/
+
+# OS Metadata
+.DS_Store
+Thumbs.db

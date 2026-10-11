@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- High-contrast Manatee Tray Icon Silhouette for 16px-32px system notification areas -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0F2738" stroke="#26A69A" stroke-width="2" />
+  <path d="M 53 29
+           C 56 29, 58 31, 58 34
+           C 58 38, 55 40, 50 40
+           C 47 40, 45 39, 43 38
+           C 41 42, 37 45, 34 45
+           C 32 45, 32 42, 34 39
+           C 28 40, 22 39, 17 36
+           C 12 39, 7 39, 5 36
+           C 3 33, 4 28, 8 26
+           C 11 25, 15 26, 18 29
+           C 23 22, 33 19, 43 21
+           C 48 22, 51 26, 53 29 Z"
+        fill="#4FD1C5" />
+  <circle cx="48.5" cy="29.5" r="1.8" fill="#0F2738" />
+</svg>

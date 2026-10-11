@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F2738" />
+      <stop offset="100%" stop-color="#16384F" />
+    </linearGradient>
+    <linearGradient id="manateeGrad" x1="0%" y1="0%" x2="100%" y2="80%">
+      <stop offset="0%" stop-color="#5EEAD4" />
+      <stop offset="100%" stop-color="#26A69A" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded Emblem Background -->
+  <rect x="12" y="12" width="232" height="232" rx="52" fill="url(#bgGrad)" stroke="#26A69A" stroke-width="4" stroke-opacity="0.45" />
+
+  <!-- Calm Water Ripple Arcs -->
+  <path d="M 48 192 Q 128 214 208 192" fill="none" stroke="#26A69A" stroke-width="5" stroke-linecap="round" opacity="0.45" />
+  <path d="M 74 210 Q 128 224 182 210" fill="none" stroke="#5EEAD4" stroke-width="3.5" stroke-linecap="round" opacity="0.3" />
+
+  <!-- Original Natee Manatee Silhouette: Rounded Snout, Gentle Arching Back, Flipper, and Iconic Paddle Tail -->
+  <path d="M 206 116
+           C 214 116, 222 123, 222 133
+           C 222 145, 212 152, 198 152
+           C 188 152, 180 149, 173 146
+           C 166 158, 152 170, 142 172
+           C 135 173, 134 165, 139 155
+           C 142 150, 145 146, 145 146
+           C 122 150, 98 148, 78 140
+           C 62 148, 42 150, 32 140
+           C 22 130, 24 112, 38 106
+           C 50 101, 66 106, 78 116
+           C 96 92, 132 80, 168 86
+           C 188 90, 198 104, 206 116 Z"
+        fill="url(#manateeGrad)" />
+
+  <!-- Gentle Eye and Snout Crease -->
+  <circle cx="192" cy="118" r="4.5" fill="#0F2738" />
+  <path d="M 203 134 Q 194 138 186 133" fill="none" stroke="#0F2738" stroke-width="3" stroke-linecap="round" opacity="0.7" />
+</svg>

@@ -1,0 +1,33 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Natee.App.ViewModels"
+             x:Class="Natee.App.App"
+             x:DataType="vm:MainWindowViewModel"
+             RequestedThemeVariant="Default">
+
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
+
+  <TrayIcon.Icons>
+    <TrayIcons>
+      <TrayIcon Icon="/Assets/natee-tray-32.png"
+                ToolTipText="{Binding TrayTooltipText}"
+                Clicked="OnTrayIconClicked">
+        <TrayIcon.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="Open Dashboard" Command="{Binding OpenDashboardFromTrayCommand}" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Run Network Diagnosis" Command="{Binding RunNetworkDiagnosisCommand}" />
+            <NativeMenuItem Header="Run Speed Test" Command="{Binding RunSpeedTestCommand}" />
+            <NativeMenuItem Header="Generate Report" Command="{Binding GenerateReportCommand}" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Settings" Command="{Binding OpenSettingsTabCommand}" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Exit" Command="{Binding ExitApplicationCommand}" />
+          </NativeMenu>
+        </TrayIcon.Menu>
+      </TrayIcon>
+    </TrayIcons>
+  </TrayIcon.Icons>
+</Application>

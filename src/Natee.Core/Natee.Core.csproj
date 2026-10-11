@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Natee.Core</RootNamespace>
+    <AssemblyName>Natee.Core</AssemblyName>
+  </PropertyGroup>
+</Project>

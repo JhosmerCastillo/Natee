@@ -1,0 +1,4 @@
+<Project>
+  <!-- Disable Avalonia.BuildServices build-time telemetry task across all projects -->
+  <Target Name="AvaloniaStats" />
+</Project>

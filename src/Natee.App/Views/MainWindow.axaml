@@ -1,0 +1,740 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Natee.App.ViewModels"
+        xmlns:models="using:Natee.Core.Models"
+        x:Class="Natee.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Natee — Calm monitoring. Clear diagnostics."
+        Icon="/Assets/natee-icon-256.png"
+        Width="980"
+        Height="680"
+        MinWidth="640"
+        MinHeight="480"
+        WindowStartupLocation="CenterScreen">
+
+  <Window.Styles>
+    <Style Selector="Border.card">
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="14" />
+      <Setter Property="Margin" Value="4,0,4,10" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#2864748B" />
+      <Setter Property="Background" Value="#1264748B" />
+    </Style>
+    <Style Selector="TextBlock.section-title">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+    <Style Selector="TextBlock.metric-value">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Opacity" Value="0.72" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="16">
+
+    <!-- Top Brand & Quick Status Header -->
+    <Border Grid.Row="0" Classes="card" Padding="14,10" Margin="0,0,0,12">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <!-- Manatee Vector Emblem + Brand Title -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <Border Width="42" Height="42" CornerRadius="10" Background="#0F2738" BorderBrush="#26A69A" BorderThickness="1.5">
+            <Viewbox Width="32" Height="32" Margin="4">
+              <Canvas Width="64" Height="64">
+                <Path Fill="#4FD1C5"
+                      Data="M 53 29 C 56 29, 58 31, 58 34 C 58 38, 55 40, 50 40 C 47 40, 45 39, 43 38 C 41 42, 37 45, 34 45 C 32 45, 32 42, 34 39 C 28 40, 22 39, 17 36 C 12 39, 7 39, 5 36 C 3 33, 4 28, 8 26 C 11 25, 15 26, 18 29 C 23 22, 33 19, 43 21 C 48 22, 51 26, 53 29 Z" />
+                <Ellipse Canvas.Left="46.5" Canvas.Top="27.5" Width="3.5" Height="3.5" Fill="#0F2738" />
+              </Canvas>
+            </Viewbox>
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <TextBlock Text="Natee" FontSize="19" FontWeight="Bold" />
+              <Border CornerRadius="4" Padding="8,2" Background="#2226A69A" BorderBrush="#26A69A" BorderThickness="1">
+                <TextBlock Text="{Binding ConnectionStatusLabel}" FontSize="11" FontWeight="SemiBold" />
+              </Border>
+            </StackPanel>
+            <TextBlock Text="Calm monitoring. Clear diagnostics." Classes="muted" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Center Live Summary -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="20,0" Spacing="2">
+          <TextBlock Text="{Binding ConnectionSummaryText}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+          <TextBlock Classes="muted" TextTrimming="CharacterEllipsis">
+            <Run Text="Interface: " /><Run Text="{Binding ActiveInterfaceDisplay}" />
+            <Run Text=" | Down: " /><Run Text="{Binding DownloadThroughputDisplay}" />
+            <Run Text=" | Up: " /><Run Text="{Binding UploadThroughputDisplay}" />
+            <Run Text=" | Latency: " /><Run Text="{Binding LatencyDisplay}" />
+          </TextBlock>
+        </StackPanel>
+
+        <!-- Quick Header Actions -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Content="Compact / Detailed"
+                  Command="{Binding ToggleCompactModeCommand}"
+                  ToolTip.Tip="Switch between the minimalist Compact Overview and the full Tabbed Diagnostic Interface." />
+          <Button Content="Diagnose"
+                  Command="{Binding RunNetworkDiagnosisCommand}"
+                  ToolTip.Tip="Run a comprehensive One-Click Network Diagnosis." />
+          <Button Content="Generate Report"
+                  Command="{Binding OpenReportsTabCommand}"
+                  ToolTip.Tip="Configure privacy redactions and export PDF and JSON technical reports." />
+          <Button Content="Exit"
+                  Command="{Binding ExitApplicationCommand}"
+                  ToolTip.Tip="Stop background monitoring and exit Natee completely." />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- MAIN CONTENT AREA: Either Compact Overview or Detailed Tabbed View -->
+    <Grid Grid.Row="1">
+
+      <!-- 1. COMPACT OVERVIEW MODE -->
+      <ScrollViewer IsVisible="{Binding IsCompactMode}" VerticalScrollBarVisibility="Auto">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+          <!-- Compact Network Card -->
+          <Border Grid.Column="0" Grid.Row="0" Classes="card">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Network Condition (Compact)" Classes="section-title" />
+              <TextBlock Text="{Binding ConnectionSummaryText}" TextWrapping="Wrap" FontWeight="Medium" />
+              <Grid ColumnDefinitions="135,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,6,0,0">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Active Interface:" Classes="muted" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ActiveInterfaceDisplay}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Live Throughput:" Classes="muted" />
+                <TextBlock Grid.Row="1" Grid.Column="1">
+                  <Run Text="Down " /><Run Text="{Binding DownloadThroughputDisplay}" FontWeight="SemiBold" />
+                  <Run Text=" / Up " /><Run Text="{Binding UploadThroughputDisplay}" FontWeight="SemiBold" />
+                </TextBlock>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Latency / Loss:" Classes="muted" />
+                <TextBlock Grid.Row="2" Grid.Column="1">
+                  <Run Text="{Binding LatencyDisplay}" FontWeight="SemiBold" />
+                  <Run Text=" (" /><Run Text="{Binding PacketLossDisplay}" /><Run Text=" loss)" />
+                </TextBlock>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Local IPv4:" Classes="muted" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Ipv4Display}" />
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Default Gateway:" Classes="muted" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding GatewayDisplay}" />
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Latest Check:" Classes="muted" />
+                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding LastCheckTimestampDisplay}" />
+              </Grid>
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                <Button Content="One-Click Diagnosis" Command="{Binding RunNetworkDiagnosisCommand}" />
+                <Button Content="Run Speed Test" Command="{Binding RunSpeedTestCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Compact System Card -->
+          <Border Grid.Column="1" Grid.Row="0" Classes="card">
+            <StackPanel Spacing="6">
+              <TextBlock Text="System Resources (Compact)" Classes="section-title" />
+              <TextBlock Text="{Binding CpuModelDisplay}" Classes="muted" TextTrimming="CharacterEllipsis" />
+              <Grid ColumnDefinitions="135,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,0">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="CPU Utilization:" Classes="muted" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CpuUsageDisplay}" FontWeight="SemiBold" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="CPU Frequency:" Classes="muted" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CpuFrequencyDisplay}" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="CPU Temperature:" Classes="muted" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CpuTemperatureDisplay}" />
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Physical RAM:" Classes="muted" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding RamDetailsDisplay}" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="System Uptime:" Classes="muted" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SystemUptimeDisplay}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- Compact Diagnosis & Top Processes -->
+          <Border Grid.Column="0" Grid.Row="1" Classes="card">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Latest Diagnosis Summary" Classes="section-title" />
+              <TextBlock Text="{Binding DiagnosisOverallTitle}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding DiagnosisSummaryExplanation}" Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Column="1" Grid.Row="1" Classes="card">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Top Active Processes" Classes="section-title" />
+              <ItemsControl ItemsSource="{Binding TopProcesses}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="models:ProcessResourceMetric">
+                    <Grid ColumnDefinitions="*,80,85" Margin="0,2">
+                      <TextBlock Grid.Column="0" Text="{Binding ProcessName}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="1" Text="{Binding CpuUsagePercent, StringFormat='{}{0:F1}% CPU'}" HorizontalAlignment="Right" Classes="muted" />
+                      <TextBlock Grid.Column="2" Text="{Binding MemoryMegabytes, StringFormat='{}{0:F1} MB'}" HorizontalAlignment="Right" Classes="muted" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </ScrollViewer>
+
+      <!-- 2. DETAILED DIAGNOSTIC INTERFACE (7 Tabs) -->
+      <TabControl IsVisible="{Binding !IsCompactMode}" SelectedIndex="{Binding SelectedTabIndex}">
+
+        <!-- TAB 0: OVERVIEW -->
+        <TabItem Header="Overview">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,10,4,0">
+            <StackPanel Spacing="8">
+              <!-- Top 4 Key Metric Cards -->
+              <Grid ColumnDefinitions="*,*,*,*">
+                <Border Grid.Column="0" Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Live Download / Upload" Classes="muted" />
+                    <TextBlock Text="{Binding DownloadThroughputDisplay}" Classes="metric-value" />
+                    <TextBlock Text="{Binding UploadThroughputDisplay, StringFormat='Upload: {0}'}" Classes="muted" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Network Latency &amp; Loss" Classes="muted" />
+                    <TextBlock Text="{Binding LatencyDisplay}" Classes="metric-value" />
+                    <TextBlock Text="{Binding PacketLossDisplay, StringFormat='Packet Loss: {0}'}" Classes="muted" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="CPU Load &amp; Thermal" Classes="muted" />
+                    <TextBlock Text="{Binding CpuUsageDisplay}" Classes="metric-value" />
+                    <TextBlock Text="{Binding CpuTemperatureDisplay, StringFormat='Temp: {0}'}" Classes="muted" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="3" Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Physical Memory (RAM)" Classes="muted" />
+                    <TextBlock Text="{Binding RamUsageDisplay}" Classes="metric-value" />
+                    <TextBlock Text="{Binding SystemUptimeDisplay, StringFormat='OS Uptime: {0}'}" Classes="muted" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+
+              <!-- Network Configuration & System Details Grid -->
+              <Grid ColumnDefinitions="*,*">
+                <Border Grid.Column="0" Classes="card">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Network Interface &amp; Addressing" Classes="section-title" />
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                      <TextBlock Grid.Row="0" Grid.Column="0" Text="Connection Status:" Classes="muted" />
+                      <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ConnectionStatusLabel}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Row="1" Grid.Column="0" Text="Active Interface:" Classes="muted" />
+                      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ActiveInterfaceDisplay}" />
+                      <TextBlock Grid.Row="2" Grid.Column="0" Text="Connection Type:" Classes="muted" />
+                      <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ConnectionTypeDisplay}" />
+                      <TextBlock Grid.Row="3" Grid.Column="0" Text="Local IPv4 Address:" Classes="muted" />
+                      <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Ipv4Display}" />
+                      <TextBlock Grid.Row="4" Grid.Column="0" Text="Local IPv6 Address:" Classes="muted" />
+                      <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Ipv6Display}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Row="5" Grid.Column="0" Text="Default Gateway:" Classes="muted" />
+                      <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding GatewayDisplay}" />
+                      <TextBlock Grid.Row="6" Grid.Column="0" Text="DNS Servers:" Classes="muted" />
+                      <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding DnsServersDisplay}" TextWrapping="Wrap" />
+                    </Grid>
+                    <TextBlock Text="Note: Live throughput reflects observed interface traffic, not maximum ISP bandwidth."
+                               Classes="muted" Margin="0,6,0,0" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Classes="card">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Storage Volumes &amp; Top Processes" Classes="section-title" />
+                    <ItemsControl ItemsSource="{Binding StorageVolumes}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:StorageVolumeMetric">
+                          <StackPanel Margin="0,0,0,6">
+                            <Grid ColumnDefinitions="*,Auto">
+                              <TextBlock Grid.Column="0" Text="{Binding VolumeId}" FontWeight="Medium" />
+                              <TextBlock Grid.Column="1" Classes="muted">
+                                <Run Text="{Binding AvailableGigabytes, StringFormat='{}{0:F1} GB free'}" />
+                                <Run Text=" / " />
+                                <Run Text="{Binding TotalGigabytes, StringFormat='{}{0:F1} GB'}" />
+                                <Run Text=" (" /><Run Text="{Binding UsagePercent, StringFormat='{}{0:F1}%'}" /><Run Text=")" />
+                              </TextBlock>
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding UsagePercent}" Height="6" Margin="0,3,0,0" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Separator Margin="0,4" />
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
+                      <TextBlock Grid.Column="0" Text="Top Resource Processes" FontWeight="SemiBold" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Content="Sort CPU" Command="{Binding SortProcessesByCpuCommand}" Padding="8,2" Margin="0,0,4,0" />
+                      <Button Grid.Column="2" Content="Sort RAM" Command="{Binding SortProcessesByMemoryCommand}" Padding="8,2" />
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding TopProcesses}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:ProcessResourceMetric">
+                          <Grid ColumnDefinitions="*,90,90" Margin="0,2">
+                            <TextBlock Grid.Column="0" Text="{Binding ProcessName}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="1" Text="{Binding CpuUsagePercent, StringFormat='{}{0:F1}% CPU'}" HorizontalAlignment="Right" Classes="muted" />
+                            <TextBlock Grid.Column="2" Text="{Binding MemoryMegabytes, StringFormat='{}{0:F1} MB'}" HorizontalAlignment="Right" Classes="muted" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </Grid>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- TAB 1: ONE-CLICK NETWORK DIAGNOSIS -->
+        <TabItem Header="Network Diagnosis">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,10,4,0">
+            <StackPanel Spacing="10">
+              <Border Classes="card">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="One-Click Network Diagnosis" Classes="section-title" />
+                    <TextBlock Text="{Binding DiagnosisProgressText}" Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Content="Run One-Click Diagnosis"
+                            Command="{Binding RunNetworkDiagnosisCommand}"
+                            IsEnabled="{Binding !IsDiagnosisRunning}" />
+                    <Button Content="Cancel"
+                            Command="{Binding CancelDiagnosisCommand}"
+                            IsVisible="{Binding IsDiagnosisRunning}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding DiagnosisOverallTitle}" FontSize="16" FontWeight="Bold" />
+                    <Border CornerRadius="4" Padding="8,2" Background="#2226A69A">
+                      <TextBlock Text="{Binding DiagnosisOverallStatusText}" FontWeight="SemiBold" FontSize="12" />
+                    </Border>
+                  </StackPanel>
+                  <TextBlock Text="{Binding DiagnosisSummaryExplanation}" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding DiagnosisLikelyCausesText}" Classes="muted" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding DiagnosisUncertaintyText}" Classes="muted" TextWrapping="Wrap"
+                             IsVisible="{Binding DiagnosisUncertaintyText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+              </Border>
+
+              <TextBlock Text="Individual Diagnostic Checks (Expand for technical details)" Classes="section-title" />
+              <ItemsControl ItemsSource="{Binding DiagnosticChecks}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="models:DiagnosticCheckItem">
+                    <Expander HorizontalAlignment="Stretch" Margin="0,0,0,6">
+                      <Expander.Header>
+                        <Grid ColumnDefinitions="110,220,*,80">
+                          <TextBlock Grid.Column="0" Text="{Binding Status}" FontWeight="Bold" />
+                          <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold" />
+                          <TextBlock Grid.Column="2" Text="{Binding MeasuredResult}" Classes="muted" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="3" Text="{Binding DurationMs, StringFormat='{}{0:F0} ms'}" Classes="muted" HorizontalAlignment="Right" />
+                        </Grid>
+                      </Expander.Header>
+                      <StackPanel Spacing="4" Margin="8,4">
+                        <TextBlock Text="{Binding WhatWasTested, StringFormat='What was tested: {0}'}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding WhyItMatters, StringFormat='Why it matters: {0}'}" Classes="muted" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding TechnicalDetails, StringFormat='Technical details: {0}'}" FontFamily="Monospace" FontSize="11.5" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Expander>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- TAB 2: INTERNET SPEED TEST -->
+        <TabItem Header="Speed Test">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,10,4,0">
+            <StackPanel Spacing="10">
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="User-Initiated Internet Bandwidth Test" Classes="section-title" />
+                  <TextBlock Text="Speed tests measure real HTTPS download and upload transfer performance against the configured endpoint (default: Cloudflare Edge HTTPS). Speed tests never run automatically in the background. Running a test transfers approximately 20 MB of data and exposes your public IP address to the configured speed-test server."
+                             Classes="muted" TextWrapping="Wrap" />
+                  <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                    <Button Content="Run Speed Test Now"
+                            Command="{Binding RunSpeedTestCommand}"
+                            IsEnabled="{Binding !IsSpeedTestRunning}" />
+                    <Button Content="Cancel Speed Test"
+                            Command="{Binding CancelSpeedTestCommand}"
+                            IsVisible="{Binding IsSpeedTestRunning}" />
+                  </StackPanel>
+                  <ProgressBar Minimum="0" Maximum="100" Value="{Binding SpeedTestProgressPercent}" Height="8" />
+                  <TextBlock Text="{Binding SpeedTestPhaseText}" Classes="muted" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+
+              <Grid ColumnDefinitions="*,*,*">
+                <Border Grid.Column="0" Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Measured Download Speed" Classes="muted" />
+                    <TextBlock Text="{Binding SpeedTestDownloadDisplay}" Classes="metric-value" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Measured Upload Speed" Classes="muted" />
+                    <TextBlock Text="{Binding SpeedTestUploadDisplay}" Classes="metric-value" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Classes="card">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Endpoint Latency" Classes="muted" />
+                    <TextBlock Text="{Binding SpeedTestLatencyDisplay}" Classes="metric-value" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+
+              <Border Classes="card">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Test Server &amp; Methodology Details" Classes="section-title" />
+                  <TextBlock Text="{Binding SpeedTestMetaDisplay}" />
+                  <TextBlock Text="Note: Negotiated Wi-Fi or Ethernet link speed represents local physical medium capacity, whereas this speed test measures actual end-to-end Internet throughput to the test server."
+                             Classes="muted" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- TAB 3: SYSTEM & PROCESSES -->
+        <TabItem Header="System &amp; Processes">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,10,4,0">
+            <StackPanel Spacing="10">
+              <Grid ColumnDefinitions="*,*">
+                <Border Grid.Column="0" Classes="card">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Processor (CPU) &amp; Thermal Sensor" Classes="section-title" />
+                    <TextBlock Text="{Binding CpuModelDisplay}" FontWeight="Medium" TextWrapping="Wrap" />
+                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,4,0,0">
+                      <TextBlock Grid.Row="0" Grid.Column="0" Text="Overall Utilization:" Classes="muted" />
+                      <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CpuUsageDisplay}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Row="1" Grid.Column="0" Text="Operating Frequency:" Classes="muted" />
+                      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CpuFrequencyDisplay}" />
+                      <TextBlock Grid.Row="2" Grid.Column="0" Text="CPU Temperature:" Classes="muted" />
+                      <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CpuTemperatureDisplay}" />
+                      <TextBlock Grid.Row="3" Grid.Column="0" Text="Sensor Source / Note:" Classes="muted" />
+                      <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CpuTemperatureNote}" Classes="muted" TextWrapping="Wrap" />
+                    </Grid>
+                  </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Classes="card">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Physical Memory (RAM) &amp; OS Uptime" Classes="section-title" />
+                    <TextBlock Text="{Binding RamDetailsDisplay}" FontWeight="Medium" TextWrapping="Wrap" />
+                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding RamUsagePercent}" Height="8" Margin="0,4" />
+                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto">
+                      <TextBlock Grid.Row="0" Grid.Column="0" Text="RAM Usage Percentage:" Classes="muted" />
+                      <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RamUsageDisplay}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Row="1" Grid.Column="0" Text="OS Uptime Since Boot:" Classes="muted" />
+                      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SystemUptimeDisplay}" FontWeight="SemiBold" />
+                    </Grid>
+                    <TextBlock Text="Physical RAM metrics exclude swap/pagefile space to reflect true resident memory availability."
+                               Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Mounted Storage Volumes" Classes="section-title" />
+                  <ItemsControl ItemsSource="{Binding StorageVolumes}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="models:StorageVolumeMetric">
+                        <Border Padding="8" Margin="0,0,0,6" CornerRadius="6" BorderThickness="1" BorderBrush="#2264748B">
+                          <StackPanel Spacing="4">
+                            <Grid ColumnDefinitions="*,Auto">
+                              <TextBlock Grid.Column="0" FontWeight="SemiBold">
+                                <Run Text="{Binding VolumeId}" />
+                                <Run Text=" [" /><Run Text="{Binding FileSystemType}" /><Run Text="]" />
+                              </TextBlock>
+                              <TextBlock Grid.Column="1">
+                                <Run Text="{Binding UsedGigabytes, StringFormat='{}{0:F2} GB used'}" />
+                                <Run Text=" / " />
+                                <Run Text="{Binding TotalGigabytes, StringFormat='{}{0:F2} GB total'}" />
+                                <Run Text=" (" /><Run Text="{Binding AvailableGigabytes, StringFormat='{}{0:F2} GB available'}" /><Run Text=")" />
+                              </TextBlock>
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding UsagePercent}" Height="6" />
+                            <TextBlock Text="{Binding StatusNote}" Classes="muted" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto,Auto">
+                    <StackPanel Grid.Column="0">
+                      <TextBlock Text="Process &amp; Application Resource Summary" Classes="section-title" Margin="0" />
+                      <TextBlock Text="CPU utilization is normalized across all logical processors (0–100%). Process termination or manipulation is intentionally excluded."
+                                 Classes="muted" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Sort by CPU %" Command="{Binding SortProcessesByCpuCommand}" Margin="0,0,6,0" />
+                    <Button Grid.Column="2" Content="Sort by RAM" Command="{Binding SortProcessesByMemoryCommand}" />
+                  </Grid>
+
+                  <ItemsControl ItemsSource="{Binding TopProcesses}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="models:ProcessResourceMetric">
+                        <Grid ColumnDefinitions="70,*,110,110" Margin="0,3">
+                          <TextBlock Grid.Column="0" Text="{Binding ProcessId, StringFormat='PID {0}'}" Classes="muted" />
+                          <TextBlock Grid.Column="1" Text="{Binding ProcessName}" FontWeight="Medium" />
+                          <TextBlock Grid.Column="2" Text="{Binding CpuUsagePercent, StringFormat='{}{0:F1}% CPU'}" HorizontalAlignment="Right" />
+                          <TextBlock Grid.Column="3" Text="{Binding MemoryMegabytes, StringFormat='{}{0:F1} MB RAM'}" HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- TAB 4: TECHNICAL REPORTS & PRIVACY -->
+        <TabItem Header="Reports &amp; Privacy">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,10,4,0">
+            <StackPanel Spacing="10">
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Privacy Selection &amp; Redaction Controls" Classes="section-title" />
+                  <TextBlock Text="Select which sensitive or identifying fields should be redacted before Natee writes the PDF and JSON technical reports. Checked items are completely omitted from both exported files and document metadata."
+                             Classes="muted" TextWrapping="Wrap" />
+
+                  <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,6">
+                    <CheckBox Grid.Row="0" Grid.Column="0" Content="Redact Computer Hostname" IsChecked="{Binding RedactHostname}" />
+                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Redact OS Username" IsChecked="{Binding RedactUsername}" />
+                    <CheckBox Grid.Row="0" Grid.Column="2" Content="Redact Local IP &amp; Gateway" IsChecked="{Binding RedactLocalIpAddresses}" />
+                    <CheckBox Grid.Row="1" Grid.Column="0" Content="Redact Public IPs &amp; DNS" IsChecked="{Binding RedactPublicIpAddresses}" />
+                    <CheckBox Grid.Row="1" Grid.Column="1" Content="Redact MAC Addresses" IsChecked="{Binding RedactMacAddresses}" />
+                    <CheckBox Grid.Row="1" Grid.Column="2" Content="Redact Interface Names/IDs" IsChecked="{Binding RedactInterfaceIdentifiers}" />
+                    <CheckBox Grid.Row="2" Grid.Column="0" Content="Redact Wi-Fi SSID" IsChecked="{Binding RedactWifiSsid}" />
+                    <CheckBox Grid.Row="2" Grid.Column="1" Content="Redact Process Names" IsChecked="{Binding RedactProcessNames}" />
+                    <CheckBox Grid.Row="2" Grid.Column="2" Content="Redact Local File/Mount Paths" IsChecked="{Binding RedactLocalFilePaths}" />
+                  </Grid>
+
+                  <TextBlock Text="Privacy Impact Preview:" FontWeight="SemiBold" Margin="0,4,0,0" />
+                  <TextBlock Text="{Binding PrivacyPreviewSummary}" Classes="muted" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Export PDF &amp; JSON Technical Reports (IT Support Ticket Ready)" Classes="section-title" />
+                  <Grid ColumnDefinitions="140,*" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="Output Directory:" VerticalAlignment="Center" Classes="muted" />
+                    <TextBox Grid.Column="1" Text="{Binding ReportOutputDirectory}" />
+                  </Grid>
+
+                  <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4">
+                    <Button Content="Generate PDF &amp; JSON Report" Command="{Binding GenerateReportCommand}" />
+                    <Button Content="Open Output Directory" Command="{Binding OpenReportDirectoryCommand}" />
+                    <Button Content="Delete Generated Reports" Command="{Binding DeleteGeneratedReportsCommand}" />
+                  </StackPanel>
+
+                  <TextBlock Text="{Binding LastGeneratedReportStatus}" TextWrapping="Wrap" FontFamily="Monospace" FontSize="12" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- TAB 5: ALERTS & LOCAL HISTORY -->
+        <TabItem Header="Alerts &amp; History">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,10,4,0">
+            <StackPanel Spacing="10">
+              <Border Classes="card">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Intelligent Notifications &amp; Local SQLite History" Classes="section-title" />
+                    <TextBlock Text="{Binding NotificationCapabilityNote}" Classes="muted" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Content="Clear All Local History" Command="{Binding ClearLocalHistoryCommand}" VerticalAlignment="Center" />
+                </Grid>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Recent Alert &amp; Recovery Notifications" Classes="section-title" />
+                  <ItemsControl ItemsSource="{Binding RecentAlerts}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="models:AlertNotification">
+                        <Border Padding="8,6" Margin="0,0,0,4" CornerRadius="4" BorderThickness="1" BorderBrush="#2264748B">
+                          <Grid ColumnDefinitions="150,180,*">
+                            <TextBlock Grid.Column="0" Text="{Binding TimestampUtc, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Classes="muted" />
+                            <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="2" Text="{Binding Message}" TextWrapping="Wrap" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Grid ColumnDefinitions="*,*">
+                <Border Grid.Column="0" Classes="card">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Recent Diagnostic Sessions" Classes="section-title" />
+                    <ItemsControl ItemsSource="{Binding DiagnosticHistory}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:DiagnosticReport">
+                          <StackPanel Margin="0,0,0,6">
+                            <TextBlock FontWeight="SemiBold">
+                              <Run Text="[" /><Run Text="{Binding OverallStatus}" /><Run Text="] " />
+                              <Run Text="{Binding SummaryTitle}" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding CompletedAtUtc, StringFormat='Completed: {0:yyyy-MM-dd HH:mm:ss UTC}'}" Classes="muted" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Classes="card">
+                  <StackPanel Spacing="6">
+                    <TextBlock Text="Recent Speed Test Runs" Classes="section-title" />
+                    <ItemsControl ItemsSource="{Binding SpeedTestHistory}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:SpeedTestResult">
+                          <StackPanel Margin="0,0,0,6">
+                            <TextBlock FontWeight="SemiBold">
+                              <Run Text="Down: " /><Run Text="{Binding DownloadSpeedMbps, StringFormat='{}{0:F1} Mbps'}" />
+                              <Run Text=" | Up: " /><Run Text="{Binding UploadSpeedMbps, StringFormat='{}{0:F1} Mbps'}" />
+                            </TextBlock>
+                            <TextBlock Text="{Binding TimestampUtc, StringFormat='Executed: {0:yyyy-MM-dd HH:mm:ss UTC}'}" Classes="muted" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </Grid>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- TAB 6: SETTINGS -->
+        <TabItem Header="Settings">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,10,4,0">
+            <StackPanel Spacing="10">
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Appearance, Tray &amp; Monitoring Preferences" Classes="section-title" />
+                  <Grid ColumnDefinitions="240,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Theme Preference:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Row="0" Grid.Column="1" SelectedIndex="{Binding SelectedThemeIndex}" Width="220">
+                      <ComboBoxItem Content="Follow System Appearance" />
+                      <ComboBoxItem Content="Light Theme" />
+                      <ComboBoxItem Content="Dark Theme" />
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Monitoring Interval (1–60 seconds):" VerticalAlignment="Center" />
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding MonitoringIntervalSeconds}" Minimum="1" Maximum="60" Width="160" HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Max Displayed Top Processes (1–25):" VerticalAlignment="Center" />
+                    <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding MaxProcessEntries}" Minimum="1" Maximum="25" Width="160" HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Local SQLite History Retention (Days):" VerticalAlignment="Center" />
+                    <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding HistoryRetentionDays}" Minimum="1" Maximum="90" Width="160" HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Window Close Behavior:" VerticalAlignment="Center" />
+                    <CheckBox Grid.Row="4" Grid.Column="1" Content="Keep Natee monitoring in the system tray when closing the dashboard window" IsChecked="{Binding MinimizeToTrayOnClose}" />
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Session Startup:" VerticalAlignment="Center" />
+                    <CheckBox Grid.Row="5" Grid.Column="1" Content="Start Natee automatically when signing into the desktop session (disabled by default)" IsChecked="{Binding StartWithSession}" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Intelligent Notification Rules &amp; Thresholds" Classes="section-title" />
+                  <Grid ColumnDefinitions="260,160,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                    <CheckBox Grid.Row="0" Grid.Column="0" Content="Alert on Internet Connection Lost/Restored" IsChecked="{Binding EnableConnectionAlerts}" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Immediate recovery alert" Classes="muted" VerticalAlignment="Center" />
+
+                    <CheckBox Grid.Row="1" Grid.Column="0" Content="Alert on High Latency (ms):" IsChecked="{Binding EnableLatencyAlerts}" />
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding LatencyThresholdMs}" Minimum="10" Maximum="5000" />
+
+                    <CheckBox Grid.Row="2" Grid.Column="0" Content="Alert on Packet Loss (%):" IsChecked="{Binding EnablePacketLossAlerts}" />
+                    <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding PacketLossThresholdPercent}" Minimum="1" Maximum="100" />
+
+                    <CheckBox Grid.Row="3" Grid.Column="0" Content="Alert on Low Remaining Disk Space (%):" IsChecked="{Binding EnableDiskSpaceAlerts}" />
+                    <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding MinFreeDiskPercentThreshold}" Minimum="1" Maximum="50" />
+
+                    <CheckBox Grid.Row="4" Grid.Column="0" Content="Alert on Sustained High CPU (%):" IsChecked="{Binding EnableCpuAlerts}" />
+                    <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding CpuThresholdPercent}" Minimum="20" Maximum="100" />
+
+                    <CheckBox Grid.Row="5" Grid.Column="0" Content="Alert on High Physical RAM (%):" IsChecked="{Binding EnableRamAlerts}" />
+                    <NumericUpDown Grid.Row="5" Grid.Column="1" Value="{Binding RamThresholdPercent}" Minimum="20" Maximum="100" />
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Anti-Spam Cooldown (Seconds) &amp; Hysteresis:" VerticalAlignment="Center" />
+                    <NumericUpDown Grid.Row="6" Grid.Column="1" Value="{Binding AlertCooldownSeconds}" Minimum="10" Maximum="86400" />
+                    <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="Consecutive Samples:" VerticalAlignment="Center" Classes="muted" />
+                      <NumericUpDown Value="{Binding ConsecutiveSamplesForAlert}" Minimum="1" Maximum="10" Width="110" />
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Diagnostic Targets &amp; Speed Test Endpoints" Classes="section-title" />
+                  <Grid ColumnDefinitions="240,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Diagnostic Targets (comma-separated):" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding DiagnosticTargetsCsv}" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="DNS Resolution Test Hostname:" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DnsTestHostname}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Optional Route Tracing:" VerticalAlignment="Center" />
+                    <CheckBox Grid.Row="2" Grid.Column="1" Content="Include bounded 5-hop route trace during One-Click Network Diagnosis" IsChecked="{Binding IncludeRouteTraceInDiagnosis}" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Speed Test Download Endpoint:" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SpeedTestDownloadUrl}" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Speed Test Upload Endpoint:" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SpeedTestUploadUrl}" />
+                  </Grid>
+
+                  <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                    <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}" />
+                    <Button Content="Restore Defaults" Command="{Binding ResetSettingsToDefaultCommand}" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding SettingsStatusMessage}" Classes="muted" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+      </TabControl>
+    </Grid>
+
+    <!-- Bottom Status Bar -->
+    <Border Grid.Row="2" Padding="8,6" Margin="0,8,0,0" CornerRadius="6" Background="#1064748B">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" Text="{Binding StatusBannerText}" Classes="muted" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="1" Text="Natee v1.0.0 MVP — Local-Only Monitoring (Zero Telemetry)" Classes="muted" />
+      </Grid>
+    </Border>
+
+  </Grid>
+</Window>

@@ -1,0 +1,79 @@
+name: Natee CI & Release Artifacts
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            archive_name: natee-v1.0.0-linux-x64.tar.gz
+          - os: windows-latest
+            rid: win-x64
+            archive_name: natee-v1.0.0-win-x64.zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 LTS SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore Natee.sln
+
+      - name: Build solution (Release)
+        run: dotnet build Natee.sln --configuration Release --no-restore
+
+      - name: Run automated tests
+        run: dotnet test Natee.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish self-contained application (${{ matrix.rid }})
+        run: |
+          dotnet publish src/Natee.App/Natee.App.csproj \
+            --configuration Release \
+            --runtime ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=false \
+            --output artifacts/publish/${{ matrix.rid }}
+
+      - name: Package Linux tar.gz archive
+        if: matrix.rid == 'linux-x64'
+        shell: bash
+        run: |
+          mkdir -p artifacts/releases
+          cp README.md LICENSE artifacts/publish/linux-x64/
+          tar -czf artifacts/releases/${{ matrix.archive_name }} -C artifacts/publish/linux-x64 .
+          ls -lh artifacts/releases/${{ matrix.archive_name }}
+
+      - name: Package Windows zip archive
+        if: matrix.rid == 'win-x64'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/releases | Out-Null
+          Copy-Item README.md, LICENSE -Destination artifacts/publish/win-x64/
+          Compress-Archive -Path artifacts/publish/win-x64/* -DestinationPath artifacts/releases/${{ matrix.archive_name }} -Force
+          Get-ChildItem artifacts/releases/${{ matrix.archive_name }}
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive_name }}
+          path: artifacts/releases/${{ matrix.archive_name }}
+          if-no-files-found: error
